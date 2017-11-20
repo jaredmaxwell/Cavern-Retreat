@@ -1,37 +1,21 @@
-package com.max.caverns
-{
-	import com.adamatomic.flixel.*;
+package com.max.caverns {
+	import com.max.caverns.state.PlayStateScroll;
+	
+	import org.flixel.*;
 
-	public class Player extends FlxSprite
-	{
+	public class Player extends FlxSprite {
+		
 		[Embed(source="../../../data/miner.png")] private var ImgMiner:Class;
 		[Embed(source="../../../data/jump.mp3")] private var SndJump:Class;
 		[Embed(source="../../../data/death.mp3")] private var SndDeath:Class;
 		
-		private var _jumpPower:int;
-		private var _pickAxe:PickAxe;
 		private var _up:Boolean;
 		private var _down:Boolean;
 		
-		private var _axeCounter:Number;
-		private var _drowningTimer:Number;
-		private var _drownRegen:Number;
-		private var _drownText:OutlineText;
-		private var _usedDoubleJump:Boolean;
-		private var _isHovering:Boolean;
-		
-		public function Player(X:int,Y:int, pickAxe:PickAxe)
-		{
-			super(ImgMiner,X,Y,true,true);
-			_axeCounter = 0;
-			_drowningTimer = -1;
-			_drownText = new OutlineText(0,0,40,40,"0",0x0000ff);
-			_drownText.visible = true;
-			_drownRegen = 5;
-			_usedDoubleJump = false;
+		public function Player(X:int,Y:int) {
 			
-			_drownText.addChildren();
-			FlxG.state.add(_drownText);
+			super(X,Y);
+			this.loadGraphic(ImgMiner, true, true);
 			
 			//bounding box tweaks
 			width = 6;
@@ -41,11 +25,8 @@ package com.max.caverns
 			
 			//basic player physics
 			var runSpeed:uint = 80;
-			drag.x = runSpeed*8;
-			acceleration.y = 420;
-			_jumpPower = 130;
-			maxVelocity.x = runSpeed;
-			maxVelocity.y = _jumpPower;
+			drag.x = drag.y = runSpeed*8;
+			maxVelocity.x = maxVelocity.y = runSpeed;
 			
 			//animations
 			addAnimation("idle", [0]);
@@ -56,171 +37,64 @@ package com.max.caverns
 			addAnimation("jump_up", [9]);
 			addAnimation("jump_down", [10]);
 			
-			_pickAxe = pickAxe;
+			play('idle');
 		}
 		
-		override public function update():void
-		{		
-			if (_drownRegen > 4)
-			{
-				_drowningTimer = -1;
-				_drownText.setVisible(false);
-			}
-			else
-			{
-				_drownRegen += FlxG.elapsed;
-			}
-			
-			if (_drownText.visible == true)
-			{
-				_drownText.xPos = x-2;
-				_drownText.yPos = y-12;
-				_drownText.setText(Math.round(_drowningTimer).toString());
-			}
+		override public function update():void {
 			
 			if (!visible)
 				return;
 			
 			//MOVEMENT
 			acceleration.x = 0;
-			if (_axeCounter < 0)
-			{
-				if(FlxG.kLeft)
-				{
-					facing = LEFT;
-					acceleration.x -= drag.x;
-				}
-				else if(FlxG.kRight)
-				{
-					facing = RIGHT;
-					acceleration.x += drag.x;
-				}
-				if(FlxG.justPressed(FlxG.A) && (!velocity.y || (PlayState.canDoubleJump && !_usedDoubleJump) || PlayState.canHover))
-				{
-					FlxG.play(SndJump,.3);
-					if (velocity.y)
-					{
-						_usedDoubleJump = true;
-					}
-					else
-					{
-						_usedDoubleJump = false;
-					}
-					velocity.y = -_jumpPower;
-					if (PlayState.canHover)
-					{
-						_isHovering = true;
-					}
-				}
-			}
-			else
-			{
-				_axeCounter -= FlxG.elapsed;
-			}
 			
-			if (FlxG.justReleased(FlxG.A))
-			{
-				_isHovering = false;
-			}
-			
-			if (_isHovering)
-			{
-				velocity.y = -_jumpPower;				
+			if (FlxG.mouse.pressed()) {
+				// get relative mouse location
+				var dx:Number = FlxG.mouse.x - this.x;
+				var dy:Number = FlxG.mouse.y - this.y;
+				
+				// determine realAngle, convert to degrees
+				var aRadians:Number = Math.atan2(dy,dx);
+				var aDegrees:Number = 360*(aRadians/(2*Math.PI));
+				
+				// To update the X/Y
+				velocity.x += Math.cos(aRadians) * 80;
+				velocity.y += Math.sin(aRadians) * 80;
 			}
 			
 			//AIMING
 			_up = false;
 			_down = false;
-			if(FlxG.kUp) _up = true;
-			else if(FlxG.kDown) _down = true;
+			if(FlxG.keys.UP) _up = true;
+			else if(FlxG.keys.DOWN) _down = true;
 			
 			//ANIMATION
-			if(velocity.y != 0)
-			{
+			if(velocity.y != 0) {
 				if(_up) play("jump_up");
 				else if(_down) play("jump_down");
 				else play("jump");
-			}
-			else if(velocity.x == 0)
-			{
+			} else if(velocity.x == 0) {
 				if(_up) play("idle_up");
 				else play("idle");
-			}
-			else
-			{
+			} else {
 				if(_up) play("run_up");
 				else play("run");
 			}
 				
 			//UPDATE POSITION AND ANIMATION
 			super.update();
-			
-			if(FlxG.justPressed(FlxG.B))
-			{
-				var axeXVel:int = 0;
-				var axeYVel:int = 0;
-				var axeX:int = x;
-				var axeY:int = y;
-				if(_up)
-				{
-					axeY -= _pickAxe.height - 4;
-					axeYVel = -1;
-					if (facing == FlxG.RIGHT)
-						axeXVel = 1;
-					else
-						axeXVel = -1;
-				}
-				else if(_down)
-				{
-					axeY += height - 4;
-					axeYVel = 1;
-					if (facing == FlxG.RIGHT)
-						axeXVel = 1;
-					else
-						axeXVel = -1;
-				}
-				else if(facing == RIGHT)
-				{
-					axeX += width - 4;
-					axeXVel = 1;
-				}
-				else
-				{
-					axeX -= _pickAxe.width - 4;
-					axeXVel = -1;
-				}
-				_pickAxe.swing(axeX, axeY, axeXVel, axeYVel);
-				_axeCounter = .2;
-			}
 		}
 		
-		public function isDrowning():void 
-		{
-			if (_drowningTimer == -1)
-			{
-				_drowningTimer = 4;
-				_drownText.setVisible(true);
-			}
+		override public function hitBottom(Contact:FlxObject, Velocity:Number):void {
 			
-			if (_drowningTimer > 0)
-			{
-				_drowningTimer -= FlxG.elapsed;
-				_drownRegen = 0;
-			}
-			else
-			{
-				this.kill();
-			}
 		}
 		
-		override public function kill():void
-		{
-			if (visible)
-			{
+		override public function kill():void {
+			if (visible) {
 				FlxG.play(SndDeath);
 				visible = false;
-				FlxG.quake(0.005,0.35);
-				FlxG.flash(0xffd8eba2, 0.35);
+				FlxG.quake.start(0.005,0.35);
+				FlxG.flash.start(0xffd8eba2, 0.35);
 			}
 		}
 	}
