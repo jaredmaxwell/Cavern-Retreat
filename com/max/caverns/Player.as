@@ -1,9 +1,10 @@
-package com.max.caverns
-{
-	import com.adamatomic.flixel.*;
+package com.max.caverns {
+	import com.max.caverns.state.PlayStateScroll;
+	
+	import org.flixel.*;
 
-	public class Player extends FlxSprite
-	{
+	public class Player extends FlxSprite {
+		
 		[Embed(source="../../../data/miner.png")] private var ImgMiner:Class;
 		[Embed(source="../../../data/jump.mp3")] private var SndJump:Class;
 		[Embed(source="../../../data/death.mp3")] private var SndDeath:Class;
@@ -20,12 +21,14 @@ package com.max.caverns
 		private var _usedDoubleJump:Boolean;
 		private var _isHovering:Boolean;
 		
-		public function Player(X:int,Y:int, pickAxe:PickAxe)
-		{
-			super(ImgMiner,X,Y,true,true);
+		public function Player(X:int,Y:int, pickAxe:PickAxe) {
+			
+			super(X,Y);
+			this.loadGraphic(ImgMiner, true, true);
+			
 			_axeCounter = 0;
 			_drowningTimer = -1;
-			_drownText = new OutlineText(0,0,40,40,"0",0x0000ff);
+			_drownText = new OutlineText(0,0,40,"0");
 			_drownText.visible = true;
 			_drownRegen = 5;
 			_usedDoubleJump = false;
@@ -57,22 +60,19 @@ package com.max.caverns
 			addAnimation("jump_down", [10]);
 			
 			_pickAxe = pickAxe;
+			
+			play('idle');
 		}
 		
-		override public function update():void
-		{		
-			if (_drownRegen > 4)
-			{
+		override public function update():void {		
+			if (_drownRegen > 4) {
 				_drowningTimer = -1;
 				_drownText.setVisible(false);
-			}
-			else
-			{
+			} else {
 				_drownRegen += FlxG.elapsed;
 			}
 			
-			if (_drownText.visible == true)
-			{
+			if (_drownText.visible == true)	{
 				_drownText.xPos = x-2;
 				_drownText.yPos = y-12;
 				_drownText.setText(Math.round(_drowningTimer).toString());
@@ -83,71 +83,56 @@ package com.max.caverns
 			
 			//MOVEMENT
 			acceleration.x = 0;
-			if (_axeCounter < 0)
-			{
-				if(FlxG.kLeft)
-				{
+			if (_axeCounter < 0) {
+				if(FlxG.keys.LEFT) {
 					facing = LEFT;
 					acceleration.x -= drag.x;
-				}
-				else if(FlxG.kRight)
-				{
+				} else if(FlxG.keys.RIGHT) {
 					facing = RIGHT;
 					acceleration.x += drag.x;
 				}
-				if(FlxG.justPressed(FlxG.A) && (!velocity.y || (PlayState.canDoubleJump && !_usedDoubleJump) || PlayState.canHover))
-				{
+				
+				if(FlxG.keys.justPressed("A") && (!velocity.y || (PlayStateScroll.canDoubleJump && !_usedDoubleJump) || PlayStateScroll.canHover)) {
 					FlxG.play(SndJump,.3);
-					if (velocity.y)
-					{
+					if (velocity.y)	{
 						_usedDoubleJump = true;
-					}
-					else
-					{
+					} else {
 						_usedDoubleJump = false;
 					}
+					
 					velocity.y = -_jumpPower;
-					if (PlayState.canHover)
-					{
+					
+					if (PlayStateScroll.canHover) {
 						_isHovering = true;
 					}
 				}
-			}
-			else
-			{
+			} else {
 				_axeCounter -= FlxG.elapsed;
 			}
 			
-			if (FlxG.justReleased(FlxG.A))
-			{
+			if (FlxG.keys.justReleased("A")) {
 				_isHovering = false;
 			}
 			
-			if (_isHovering)
-			{
+			if (_isHovering) {
 				velocity.y = -_jumpPower;				
 			}
 			
 			//AIMING
 			_up = false;
 			_down = false;
-			if(FlxG.kUp) _up = true;
-			else if(FlxG.kDown) _down = true;
+			if(FlxG.keys.UP) _up = true;
+			else if(FlxG.keys.DOWN) _down = true;
 			
 			//ANIMATION
-			if(velocity.y != 0)
-			{
+			if(velocity.y != 0) {
 				if(_up) play("jump_up");
 				else if(_down) play("jump_down");
 				else play("jump");
-			}
-			else if(velocity.x == 0)
-			{
+			} else if(velocity.x == 0) {
 				if(_up) play("idle_up");
 				else play("idle");
-			}
-			else
-			{
+			} else {
 				if(_up) play("run_up");
 				else play("run");
 			}
@@ -155,37 +140,29 @@ package com.max.caverns
 			//UPDATE POSITION AND ANIMATION
 			super.update();
 			
-			if(FlxG.justPressed(FlxG.B))
-			{
+			if(FlxG.keys.justPressed("B")) {
 				var axeXVel:int = 0;
 				var axeYVel:int = 0;
 				var axeX:int = x;
 				var axeY:int = y;
-				if(_up)
-				{
+				if(_up) {
 					axeY -= _pickAxe.height - 4;
 					axeYVel = -1;
-					if (facing == FlxG.RIGHT)
+					if (facing == FlxG.keys.RIGHT)
 						axeXVel = 1;
 					else
 						axeXVel = -1;
-				}
-				else if(_down)
-				{
+				} else if(_down) {
 					axeY += height - 4;
 					axeYVel = 1;
-					if (facing == FlxG.RIGHT)
+					if (facing == FlxG.keys.RIGHT)
 						axeXVel = 1;
 					else
 						axeXVel = -1;
-				}
-				else if(facing == RIGHT)
-				{
+				} else if(facing == RIGHT) {
 					axeX += width - 4;
 					axeXVel = 1;
-				}
-				else
-				{
+				} else {
 					axeX -= _pickAxe.width - 4;
 					axeXVel = -1;
 				}
@@ -194,33 +171,36 @@ package com.max.caverns
 			}
 		}
 		
-		public function isDrowning():void 
-		{
-			if (_drowningTimer == -1)
-			{
+		override public function hitBottom(Contact:FlxObject, Velocity:Number):void {
+			if (Contact is Cloud) {
+				var cloud:Cloud = Cloud(Contact);
+				
+				this.velocity.x = cloud.velocity.x*1.15;
+				this.velocity.y = 0;
+				cloud.acceleration.y = 0;
+			}
+		}
+		
+		public function isDrowning():void {
+			if (_drowningTimer == -1) {
 				_drowningTimer = 4;
 				_drownText.setVisible(true);
 			}
 			
-			if (_drowningTimer > 0)
-			{
+			if (_drowningTimer > 0)	{
 				_drowningTimer -= FlxG.elapsed;
 				_drownRegen = 0;
-			}
-			else
-			{
+			} else {
 				this.kill();
 			}
 		}
 		
-		override public function kill():void
-		{
-			if (visible)
-			{
+		override public function kill():void {
+			if (visible) {
 				FlxG.play(SndDeath);
 				visible = false;
-				FlxG.quake(0.005,0.35);
-				FlxG.flash(0xffd8eba2, 0.35);
+				FlxG.quake.start(0.005,0.35);
+				FlxG.flash.start(0xffd8eba2, 0.35);
 			}
 		}
 	}

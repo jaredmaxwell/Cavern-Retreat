@@ -1,6 +1,6 @@
 package com.max.caverns
 {
-	import com.adamatomic.flixel.*;
+	import org.flixel.*;
 
 	public class OutlineText extends FlxText
 	{
@@ -9,13 +9,14 @@ package com.max.caverns
 		private var rightText:FlxText;
 		private var downText:FlxText;
 		
-		public function OutlineText(X:Number, Y:Number, Width:uint, Height:uint, Text:String, Color:uint=0x000000, Font:String=null, Size:uint=8, Justification:String=null, Angle:Number=0)
+		public function OutlineText(X:Number, Y:Number, Width:uint, Text:String)
 		{
-			super(X, Y, Width, Height, Text, Color, Font, Size, Justification, Angle);
-			leftText = new FlxText(X-1, Y, Width, Height, Text, 0x000000, Font, Size, Justification, Angle);
-			rightText = new FlxText(X+1, Y, Width, Height, Text, 0x000000, Font, Size, Justification, Angle);
-			topText = new FlxText(X-1, Y, Width, Height, Text, 0x000000, Font, Size, Justification, Angle);
-			downText = new FlxText(X+1, Y, Width, Height, Text, 0x000000, Font, Size, Justification, Angle);
+			super(X, Y, Width, Text);
+			this.color = 0xFFD700;
+			leftText = new FlxText(X-1, Y, Width, Text);
+			rightText = new FlxText(X+1, Y, Width, Text);
+			topText = new FlxText(X-1, Y, Width, Text);
+			downText = new FlxText(X+1, Y, Width, Text);
 		}
 		
 		public function addChildren():void {
@@ -41,12 +42,12 @@ package com.max.caverns
 			downText.y = value+1;
         }
 	
-		override public function setText(Text:String):void {
-			super.setText(Text);
-			leftText.setText(Text);
-			topText.setText(Text);
-			rightText.setText(Text);
-			downText.setText(Text);
+		public function setText(text:String):void {
+			super.text = text;
+			leftText.text = text;
+			topText.text = text;
+			rightText.text = text;
+			downText.text = text;
 		}
 		
 		public function setVisible(value:Boolean):void {

@@ -1,45 +1,44 @@
-﻿package com.max.caverns
-{
-	import com.adamatomic.flixel.*;
+﻿package com.max.caverns {
+	import org.flixel.*;
 	
-	public class CavernBlock extends FlxBlock
-	{
+	public class CavernBlock extends FlxTileblock {
+		
 		[Embed(source="../../../data/mtnGibs.png")] private var ImgMtnGibs:Class;
 		
-		public var health:Number;
 		public var tileType:String;
 		private var _gibs:FlxEmitter;
+		private var waterAmount:int;
 		
-		public function CavernBlock(X:int,Y:int,Width:uint,Height:uint,TileGraphic:Class,Empties:uint=0,health:uint=20) 
-		{			
-			super(X, Y, Width, Height, TileGraphic, Empties);
+		public function CavernBlock(x:int,y:int,width:uint,height:uint,tileGraphic:Class,empties:uint=0,health:uint=20) {			
+			super(x, y, width, height);
+			this.loadGraphic(tileGraphic, empties);
 			this.health = health;
-			tileType = String(TileGraphic);
+			tileType = String(tileGraphic);
 		}	
 		
-		virtual public function hurt(Damage:Number):void
-		{
-			if ((health -= Damage) <= 0)
-			{
+		override public function hurt(Damage:Number):void {
+			if ((health -= Damage) <= 0) {
 				kill();
-				_gibs = FlxG.state.add(new FlxEmitter(x+width/2,y+height/2,0,0,null,-2,-40,40,-40,30,-720,720,400,0,ImgMtnGibs,10,true)) as FlxEmitter;
-				_gibs.reset();
+				_gibs = new FlxEmitter(x+width/2,y+height/2);
+				_gibs.setYSpeed(-2,-1);
+				_gibs.setXSpeed(-10,10);
+				_gibs.setRotation(-360,360);
+				_gibs.gravity = 100;
+				_gibs.createSprites(ImgMtnGibs,3,16);
+				FlxG.state.add(_gibs);
+				_gibs.start(true);
 			}
 		}
 		
-		static public function overlapArray(blocks:FlxArray,pickAxe:PickAxe,Collide:Function):void
-		{
-			var j:uint;
-			var block:CavernBlock;
-			for(var i:uint = 0; i < blocks.length; i++)
-			{
-				block = blocks[i];
-				if (!block.exists || block.dead) 
-					continue;
-				if ((pickAxe.exists || !pickAxe.dead) && block.overlaps(pickAxe)) 
-					Collide(block,pickAxe);
+		public function dropletHit(droplet:Droplet):void {
+			waterAmount++;
+			
+			//if water is > 10 soak neighbor dirt ++ && turn droplet to pool above dirt
+			if (waterAmount > 10) {
+				waterAmount = 10;
+				
+				droplet.createPool();
 			}
 		}
 	}
-	
 }

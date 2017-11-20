@@ -1,6 +1,7 @@
 package {
-	import com.adamatomic.flixel.FlxGame;
+	import org.flixel.FlxGame;
 	import com.max.caverns.*;
+	import com.max.caverns.state.*;
 	
 	[SWF(width="640", height="480", backgroundColor="#000000")]
 	[Frame(factoryClass="Preloader")]
@@ -9,8 +10,7 @@ package {
 	{
 		public function Caverns():void
 		{
-			super(320,240,Ninjarift,2,0xff000000,true,0xff937011);
-			help("Jump", "Swing", "Nothing");
+			super(320,240,PlayStateScroll,2);
 		}
 	}
 }

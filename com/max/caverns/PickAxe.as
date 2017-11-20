@@ -1,6 +1,6 @@
 package com.max.caverns
 {
-	import com.adamatomic.flixel.*;
+	import org.flixel.*;
 
 	public class PickAxe extends FlxSprite
 	{
@@ -8,7 +8,8 @@ package com.max.caverns
 		
 		public function PickAxe()
 		{
-			super(ImgPickAxe,0,0,true);
+			super(0,0);
+			this.loadGraphic(ImgPickAxe, true, true);
 			width = 6;
 			height = 6;
 			offset.x = 1;
@@ -30,9 +31,11 @@ package com.max.caverns
 			else super.update();
 		}
 		
-		override public function hitWall():Boolean { hurt(0); return true; }
-		override public function hitFloor():Boolean { hurt(0); return true; }
-		override public function hitCeiling():Boolean { hurt(0); return true; }
+		override public function hitLeft(Contact:FlxObject, Velocity:Number):void { hurt(0); }
+		override public function hitRight(Contact:FlxObject, Velocity:Number):void { hurt(0); }
+		override public function hitBottom(Contact:FlxObject, Velocity:Number):void { hurt(0); }
+		override public function hitTop(Contact:FlxObject, Velocity:Number):void { hurt(0); }
+		
 		override public function hurt(Damage:Number):void
 		{
 			if(dead) return;

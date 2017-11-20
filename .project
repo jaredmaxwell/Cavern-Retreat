@@ -14,4 +14,11 @@
 	<natures>
 		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>[source path] flixel</name>
+			<type>2</type>
+			<locationURI>DOCUMENTS/flixel</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>
